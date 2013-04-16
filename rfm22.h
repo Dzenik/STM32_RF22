@@ -442,7 +442,7 @@ typedef enum
 /// - Sets the modem data rate to FSK_Rb2_4Fd36
 /// \return  true if everything was successful
 //bool        init();
-bool RF22init(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t spiPortNum);
+bool RF22init(void);
 
 
 /// Issues a software reset to the

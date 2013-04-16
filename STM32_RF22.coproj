@@ -22,7 +22,9 @@
         <Option name="UserEditLinkder" value=""/>
         <Option name="UseMemoryLayout" value="1"/>
         <Option name="Library" value="Not use C Library"/>
-        <LinkedLibraries/>
+        <LinkedLibraries>
+          <Libset dir="..\..\..\..\program files\gnu tools arm embedded\4.7 2012q4\arm-none-eabi\lib\armv7-m\" libs="m"/>
+        </LinkedLibraries>
         <MemoryAreas debugInFlashNotRAM="1">
           <Memory name="IROM1" type="ReadOnly" size="0x00080000" startValue="0x08000000"/>
           <Memory name="IRAM1" type="ReadWrite" size="0x00010000" startValue="0x20000000"/>
@@ -44,19 +46,19 @@
       </User>
     </BuildOption>
     <DebugOption>
-      <Option name="org.coocox.codebugger.gdbjtag.core.adapter" value="ST-Link"/>
-      <Option name="org.coocox.codebugger.gdbjtag.core.debugMode" value="SWD"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.adapter" value="J-Link"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.debugMode" value="JTAG"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.clockDiv" value="1M"/>
       <Option name="org.coocox.codebugger.gdbjtag.corerunToMain" value="1"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.jlinkgdbserver" value="C:\Program Files (x86)\SEGGER\JLinkARM_V414b\JLinkGDBServerCL.exe"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.userDefineGDBScript" value=""/>
       <Option name="org.coocox.codebugger.gdbjtag.core.targetEndianess" value="0"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.jlinkResetMode" value="Type 0: Normal"/>
-      <Option name="org.coocox.codebugger.gdbjtag.core.resetMode" value="SYSRESETREQ"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.resetMode" value="Type 0: Normal"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.ifSemihost" value="0"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.ifCacheRom" value="1"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.ipAddress" value="127.0.0.1"/>
-      <Option name="org.coocox.codebugger.gdbjtag.core.portNumber" value="2009"/>
+      <Option name="org.coocox.codebugger.gdbjtag.core.portNumber" value="2331"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.autoDownload" value="1"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.verify" value="1"/>
       <Option name="org.coocox.codebugger.gdbjtag.core.downloadFuction" value="Erase Effected"/>

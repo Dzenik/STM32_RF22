@@ -1,4 +1,8 @@
 #include "rfm22.h"
+#include <math.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #define RF_PORT GPIOC
 #define RF_SS_Pin GPIO_Pin_5
@@ -68,7 +72,19 @@ __IO uint16_t				_txGood;
 
 __IO uint8_t    			_lastRssi;
 
-void attachInterrupt(uint8_t ExternalInterruptNum, uint8_t pin, void (*userFunc)(void), uint8_t edgeState)
+void _delay_ms(uint32_t t)// roughly calibrated spin delay
+{
+	uint32_t nCount = 0;
+	while (t != 0)
+	{
+		nCount = 8000;
+		while(nCount != 0)
+			nCount--;
+		t--;
+	}
+}
+
+void InitInterrupt(void)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 	EXTI_InitTypeDef EXTI_InitStructure;
@@ -95,21 +111,15 @@ void attachInterrupt(uint8_t ExternalInterruptNum, uint8_t pin, void (*userFunc)
     NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
     NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
     NVIC_Init(&NVIC_InitStructure);
+}
 
-
-
-	if(ExternalInterruptNum < EXTERNAL_NUM_INTERRUPTS)
+void EXTI4_IRQHandler(void)
+{
+	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
 	{
-		uint8_t gpio_port = digitalPinToGPIOPort(pin);
-		uint8_t gpio_pin = digitalPinToGPIOPin(pin);
-		GPIO_IntCmd(gpio_port,(1<<gpio_pin),edgeState);
-		//intFunc[interruptNum] = userFunc;
-
-		// only EINT3 currently supported
-		intFunc[3] = userFunc;
-		interruptState[3][0] = pin;
-		interruptState[3][1] = edgeState;
-		NVIC_EnableIRQ(EINT3_IRQn);
+		handleInterrupt();
+		/* Clear the EXTI line 12 pending bit */
+		EXTI_ClearITPendingBit(EXTI_Line4);
 	}
 }
 
@@ -129,10 +139,10 @@ static void SpiInit(void)
 	GPIO_Init(GPIOA, &GPIO_InitStructure);
 
 	/*Configure GPIO pin 4 for SS */
-	GPIO_InitStruct.GPIO_Pin = RF_SS_Pin;
-	GPIO_InitStruct.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStruct.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(RF_PORT, &GPIO_InitStruct);
+	GPIO_InitStructure.GPIO_Pin = RF_SS_Pin;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(RF_PORT, &GPIO_InitStructure);
 
 	/* Disabling SPI1 for configure */
 	SPI_I2S_DeInit(SPI1);
@@ -153,7 +163,7 @@ static void SpiInit(void)
 	SPI_Cmd(SPI1, ENABLE);
 }
 
-bool RF22init(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t spiPortNum)
+bool RF22init(void)
 {
 	_idleMode = RF22_XTON; // Default idle state is READY mode
 	_mode = RF22_MODE_IDLE; // We start up in idle mode
@@ -170,13 +180,6 @@ bool RF22init(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t spiPortNum)
 
     // start the SPI library:
     // Note the RF22 wants mode 0, MSB first and default to 1 Mbps
-
-
-    // Le : changed to lpc lib
-//    SPI.begin();
-//    SPI.setDataMode(SPI_MODE0);
-//    SPI.setBitOrder(MSBFIRST);
-//    SPI.setClockDivider(SPI_CLOCK_DIV16);  // (16 Mhz / 16) = 1 MHz
     SpiInit();
 
     // Software reset the device
@@ -190,14 +193,7 @@ bool RF22init(uint8_t slaveSelectPin, uint8_t interruptPin, uint8_t spiPortNum)
 	return FALSE;
 
 	// Set up interrupt handler
-
-    // Le: added these for interrupt on 1284p
-
-   // pinMode(2, INPUT);
-    //digitalWrite(2, 1); // pull-up
-
-
-	attachInterrupt(3, interruptPin, handleInterrupt, HIGH);   // Le: interrupt from a FALLING EDGE(nIrq), see pin.c
+    InitInterrupt();   // Le: interrupt from a FALLING EDGE(nIrq), see pin.c
 
     clearTxBuf();
     clearRxBuf();

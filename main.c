@@ -11,6 +11,7 @@ int main(void)
 	vNVIC_Configuration();
 	vGPIO_Configuration();
 
+	RF22init();
 
     while(1)
     {
