@@ -6,28 +6,28 @@
 #include <string.h>
 
 /* Defines for the SPI and GPIO pins used to drive the SPI Flash */
-#define RADIO_GPIO_CS             GPIO_Pin_12
-#define RADIO_GPIO_CS_PORT        GPIOB
-#define RADIO_GPIO_CS_PERIF       RCC_APB2Periph_GPIOB
+#define RADIO_GPIO_CS             GPIO_Pin_4
+#define RADIO_GPIO_CS_PORT        GPIOC
+#define RADIO_GPIO_CS_PERIF       RCC_APB2Periph_GPIOC
 
-#define RADIO_GPIO_CLK            GPIO_Pin_8
-#define RADIO_GPIO_CLK_PORT       GPIOA
-#define RADIO_GPIO_CLK_PERIF      RCC_APB2Periph_GPIOA
+//#define RADIO_GPIO_CLK            GPIO_Pin_5
+//#define RADIO_GPIO_CLK_PORT       GPIOA
+//#define RADIO_GPIO_CLK_PERIF      RCC_APB2Periph_GPIOA
 
-#define RADIO_GPIO_IRQ            GPIO_Pin_9
-#define RADIO_GPIO_IRQ_PORT       GPIOA
-#define RADIO_GPIO_IRQ_PERIF      RCC_APB2Periph_GPIOA
-#define RADIO_GPIO_IRQ_SRC_PORT   GPIO_PortSourceGPIOA
-#define RADIO_GPIO_IRQ_SRC        GPIO_PinSource9
-#define RADIO_GPIO_IRQ_LINE       EXTI_Line9
+#define RADIO_GPIO_IRQ            GPIO_Pin_5
+#define RADIO_GPIO_IRQ_PORT       GPIOC
+#define RADIO_GPIO_IRQ_PERIF      RCC_APB2Periph_GPIOC
+#define RADIO_GPIO_IRQ_SRC_PORT   GPIO_PortSourceGPIOC
+#define RADIO_GPIO_IRQ_SRC        GPIO_PinSource5
+#define RADIO_GPIO_IRQ_LINE       EXTI_Line5
 
-#define RADIO_SPI                 SPI2
-#define RADIO_SPI_CLK             RCC_APB1Periph_SPI2
-#define RADIO_GPIO_SPI_PORT       GPIOB
-#define RADIO_GPIO_SPI_CLK        RCC_APB2Periph_GPIOB
-#define RADIO_GPIO_SPI_SCK        GPIO_Pin_13
-#define RADIO_GPIO_SPI_MISO       GPIO_Pin_14
-#define RADIO_GPIO_SPI_MOSI       GPIO_Pin_15
+#define RADIO_SPI                 SPI1
+#define RADIO_SPI_CLK             RCC_APB1Periph_SPI1
+#define RADIO_GPIO_SPI_PORT       GPIOA
+#define RADIO_GPIO_SPI_CLK        RCC_APB2Periph_GPIOA
+#define RADIO_GPIO_SPI_SCK        GPIO_Pin_5
+#define RADIO_GPIO_SPI_MISO       GPIO_Pin_6
+#define RADIO_GPIO_SPI_MOSI       GPIO_Pin_7
 
 /* Usefull macro */
 #define RADIO_EN_CS() GPIO_ResetBits(RADIO_GPIO_CS_PORT, RADIO_GPIO_CS)
@@ -121,17 +121,17 @@ static void SpiInit(void)
 	extiInit();
 
 	/* Enable SPI and GPIO clocks */
-	RCC_APB2PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF |
+	RCC_APB1PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF |
 	                       RADIO_GPIO_IRQ_PERIF, ENABLE);
 
 	/* Enable SPI and GPIO clocks */
-	RCC_APB1PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
-
-	/* Configure main clock */
-	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_CLK;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(RADIO_GPIO_CLK_PORT, &GPIO_InitStructure);
+//	RCC_APB1PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
+//
+//	/* Configure main clock */
+//	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_CLK;
+//	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+//	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+//	GPIO_Init(RADIO_GPIO_CLK_PORT, &GPIO_InitStructure);
 
 	/* Configure SPI pins: SCK, MISO and MOSI */
 	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_SPI_SCK |  RADIO_GPIO_SPI_MOSI;
@@ -296,13 +296,13 @@ uint8_t spiRead(uint8_t reg)
 {
 	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
-	SPI_I2S_SendData(SPI1, reg & ~RF22_SPI_WRITE_MASK);
+	SPI_I2S_SendData(RADIO_SPI, reg & ~RF22_SPI_WRITE_MASK);
     /* Wait for SPI1 data reception */
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_RXNE) == RESET);
     /* Read SPI1 received data */
-	uint8_t val = SPI_I2S_ReceiveData(SPI1);
+	uint8_t val = SPI_I2S_ReceiveData(RADIO_SPI);
 	RADIO_DIS_CS();
 
 	return val;
@@ -312,13 +312,13 @@ void spiWrite(uint8_t reg, uint8_t val)
 {
 	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
-	SPI_I2S_SendData(SPI1, reg | RF22_SPI_WRITE_MASK);
+	SPI_I2S_SendData(RADIO_SPI, reg | RF22_SPI_WRITE_MASK);
     /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
-	SPI_I2S_SendData(SPI1, val);
+	SPI_I2S_SendData(RADIO_SPI, val);
 	RADIO_DIS_CS();
 }
 
@@ -326,15 +326,15 @@ void spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 {
 	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
-	SPI_I2S_SendData(SPI1, reg & ~RF22_SPI_WRITE_MASK);
+	SPI_I2S_SendData(RADIO_SPI, reg & ~RF22_SPI_WRITE_MASK);
 	while(len--)
 	{
 	    /* Wait for SPI1 data reception */
-	    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
+	    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_RXNE) == RESET);
 	    /* Read SPI1 received data */
-		*dest++ = SPI_I2S_ReceiveData(SPI1);
+		*dest++ = SPI_I2S_ReceiveData(RADIO_SPI);
 	}
 	RADIO_DIS_CS();
 }
@@ -343,15 +343,15 @@ void spiBurstWrite(uint8_t reg, uint8_t* src, uint8_t len)
 {
 	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
-	SPI_I2S_SendData(SPI1, reg | RF22_SPI_WRITE_MASK);
+	SPI_I2S_SendData(RADIO_SPI, reg | RF22_SPI_WRITE_MASK);
 	while(len--)
 	{
 	    /* Wait for SPI1 Tx buffer empty */
-	    while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
+	    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
 		/* Send SPI1 data */
-		SPI_I2S_SendData(SPI1, *src++);
+		SPI_I2S_SendData(RADIO_SPI, *src++);
 	}
 	RADIO_DIS_CS();
 }

@@ -21,9 +21,11 @@
         <Option name="DiscardUnusedSection" value="0"/>
         <Option name="UserEditLinkder" value=""/>
         <Option name="UseMemoryLayout" value="1"/>
-        <Option name="Library" value="Not use C Library"/>
+        <Option name="Library" value="Use base C Library"/>
+        <Option name="nostartfiles" value="1"/>
+        <Option name="DiscardUnusedSections" value="1"/>
         <LinkedLibraries>
-          <Libset dir="..\..\..\..\program files\gnu tools arm embedded\4.7 2012q4\arm-none-eabi\lib\armv7-m\" libs="m"/>
+          <Libset dir="..\..\..\..\program files (x86)\gnu tools arm embedded\4.7 2012q4\arm-none-eabi\lib\armv7-m\" libs="m"/>
         </LinkedLibraries>
         <MemoryAreas debugInFlashNotRAM="1">
           <Memory name="IROM1" type="ReadOnly" size="0x00080000" startValue="0x08000000"/>
