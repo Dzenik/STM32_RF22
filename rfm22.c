@@ -1,11 +1,38 @@
 #include "rfm22.h"
+#include "exti.h"
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-#define RF_PORT GPIOC
-#define RF_SS_Pin GPIO_Pin_5
+/* Defines for the SPI and GPIO pins used to drive the SPI Flash */
+#define RADIO_GPIO_CS             GPIO_Pin_12
+#define RADIO_GPIO_CS_PORT        GPIOB
+#define RADIO_GPIO_CS_PERIF       RCC_APB2Periph_GPIOB
+
+#define RADIO_GPIO_CLK            GPIO_Pin_8
+#define RADIO_GPIO_CLK_PORT       GPIOA
+#define RADIO_GPIO_CLK_PERIF      RCC_APB2Periph_GPIOA
+
+#define RADIO_GPIO_IRQ            GPIO_Pin_9
+#define RADIO_GPIO_IRQ_PORT       GPIOA
+#define RADIO_GPIO_IRQ_PERIF      RCC_APB2Periph_GPIOA
+#define RADIO_GPIO_IRQ_SRC_PORT   GPIO_PortSourceGPIOA
+#define RADIO_GPIO_IRQ_SRC        GPIO_PinSource9
+#define RADIO_GPIO_IRQ_LINE       EXTI_Line9
+
+#define RADIO_SPI                 SPI2
+#define RADIO_SPI_CLK             RCC_APB1Periph_SPI2
+#define RADIO_GPIO_SPI_PORT       GPIOB
+#define RADIO_GPIO_SPI_CLK        RCC_APB2Periph_GPIOB
+#define RADIO_GPIO_SPI_SCK        GPIO_Pin_13
+#define RADIO_GPIO_SPI_MISO       GPIO_Pin_14
+#define RADIO_GPIO_SPI_MOSI       GPIO_Pin_15
+
+/* Usefull macro */
+#define RADIO_EN_CS() GPIO_ResetBits(RADIO_GPIO_CS_PORT, RADIO_GPIO_CS)
+#define RADIO_DIS_CS() GPIO_SetBits(RADIO_GPIO_CS_PORT, RADIO_GPIO_CS)
+
 
 // These are indexed by the values of ModemConfigChoice
 // Canned modem configurations generated with
@@ -52,9 +79,6 @@ static const ModemConfig MODEM_CONFIG_TABLE[] =
 static uint8_t             	_mode; // One of RF22_MODE_*
 
 static uint8_t             	_idleMode;
-//static uint8_t             	_slaveSelectPin;
-//static uint8_t             	_spiPortNum;
-//static uint8_t             _interrupt;
 static uint8_t             	_deviceType;
 
 // These volatile members may get changed in the interrupt service routine
@@ -72,6 +96,9 @@ __IO uint16_t				_txGood;
 
 __IO uint8_t    			_lastRssi;
 
+static void (*interruptCb)(void) = NULL;
+
+
 void _delay_ms(uint32_t t)// roughly calibrated spin delay
 {
 	uint32_t nCount = 0;
@@ -84,83 +111,92 @@ void _delay_ms(uint32_t t)// roughly calibrated spin delay
 	}
 }
 
-void InitInterrupt(void)
+static void SpiInit(void)
 {
+	SPI_InitTypeDef SPI_InitStructure;
 	GPIO_InitTypeDef GPIO_InitStructure;
 	EXTI_InitTypeDef EXTI_InitStructure;
-	NVIC_InitTypeDef NVIC_InitStructure;
 
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_AFIO, ENABLE);
+	/* Enable the EXTI interrupt router */
+	extiInit();
 
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_4;
+	/* Enable SPI and GPIO clocks */
+	RCC_APB2PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF |
+	                       RADIO_GPIO_IRQ_PERIF, ENABLE);
+
+	/* Enable SPI and GPIO clocks */
+	RCC_APB1PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
+
+	/* Configure main clock */
+	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_CLK;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(RADIO_GPIO_CLK_PORT, &GPIO_InitStructure);
+
+	/* Configure SPI pins: SCK, MISO and MOSI */
+	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_SPI_SCK |  RADIO_GPIO_SPI_MOSI;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_Init(RADIO_GPIO_SPI_PORT, &GPIO_InitStructure);
+
+	//* Configure MISO */
+	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_SPI_MISO;
 	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
-	GPIO_Init(GPIOB, &GPIO_InitStructure);
+	GPIO_Init(RADIO_GPIO_SPI_PORT, &GPIO_InitStructure);
 
-	GPIO_EXTILineConfig(GPIO_PortSourceGPIOC, GPIO_PinSource4);
+	/* Configure I/O for the Chip select */
+	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_CS;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+	GPIO_Init(RADIO_GPIO_CS_PORT, &GPIO_InitStructure);
 
-	EXTI_InitStructure.EXTI_Line = EXTI_Line4;
+	/* Configure the interruption (EXTI Source) */
+	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_IRQ;
+	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
+	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_IN_FLOATING;
+	GPIO_Init(RADIO_GPIO_IRQ_PORT, &GPIO_InitStructure);
+
+	GPIO_EXTILineConfig(RADIO_GPIO_IRQ_SRC_PORT, RADIO_GPIO_IRQ_SRC);
+	EXTI_InitStructure.EXTI_Line = RADIO_GPIO_IRQ_LINE;
 	EXTI_InitStructure.EXTI_Mode = EXTI_Mode_Interrupt;
 	EXTI_InitStructure.EXTI_Trigger = EXTI_Trigger_Falling;
 	EXTI_InitStructure.EXTI_LineCmd = ENABLE;
 	EXTI_Init(&EXTI_InitStructure);
 
-	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+	// Clock the radio with 16MHz
+	RCC_MCOConfig(RCC_MCO_HSE);
 
-    NVIC_InitStructure.NVIC_IRQChannel = EXTI4_IRQn; //EXTI9_5_IRQChannel;
-    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);
-}
+	/* disable the chip select */
+	RADIO_DIS_CS();
 
-void EXTI4_IRQHandler(void)
-{
-	if(EXTI_GetITStatus(EXTI_Line4) != RESET)
-	{
-		handleInterrupt();
-		/* Clear the EXTI line 12 pending bit */
-		EXTI_ClearITPendingBit(EXTI_Line4);
-	}
-}
-
-static void SpiInit(void)
-{
-	SPI_InitTypeDef SPI_InitStructure;
-	GPIO_InitTypeDef GPIO_InitStructure;
-
-	/* GPIOA, GPIOB and SPI1 clock enable */
-	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_GPIOC |
-						 RCC_APB2Periph_SPI1, ENABLE);
-
-	/* Configure SPI1 pins: SCK, MISO and MOSI ----------------------------*/
-	GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_6 | GPIO_Pin_7;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_AF_PP;
-	GPIO_Init(GPIOA, &GPIO_InitStructure);
-
-	/*Configure GPIO pin 4 for SS */
-	GPIO_InitStructure.GPIO_Pin = RF_SS_Pin;
-	GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
-	GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-	GPIO_Init(RF_PORT, &GPIO_InitStructure);
-
-	/* Disabling SPI1 for configure */
-	SPI_I2S_DeInit(SPI1);
-
-	/* SPI1 configuration ------------------------------------------------------*/
+	/* SPI configuration */
 	SPI_InitStructure.SPI_Direction = SPI_Direction_2Lines_FullDuplex;
 	SPI_InitStructure.SPI_Mode = SPI_Mode_Master;
 	SPI_InitStructure.SPI_DataSize = SPI_DataSize_8b;
-	SPI_InitStructure.SPI_CPOL = SPI_CPOL_High;
+	SPI_InitStructure.SPI_CPOL = SPI_CPOL_Low;
 	SPI_InitStructure.SPI_CPHA = SPI_CPHA_1Edge;
 	SPI_InitStructure.SPI_NSS = SPI_NSS_Soft;
-	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_32;
+	SPI_InitStructure.SPI_BaudRatePrescaler = SPI_BaudRatePrescaler_8;
 	SPI_InitStructure.SPI_FirstBit = SPI_FirstBit_MSB;
 	SPI_InitStructure.SPI_CRCPolynomial = 7;
-	SPI_Init(SPI1, &SPI_InitStructure);
+	SPI_Init(RADIO_SPI, &SPI_InitStructure);
 
-	/* Starting SPI */
-	SPI_Cmd(SPI1, ENABLE);
+	/* Enable the SPI  */
+	SPI_Cmd(RADIO_SPI, ENABLE);
+}
+
+void rfSetInterruptCallback(void (*cb)(void))
+{
+  interruptCb = cb;
+}
+
+/* Interrupt service routine, call the interrupt callback
+ */
+void rfIsr()
+{
+  if (interruptCb)
+    interruptCb();
+
+  return;
 }
 
 bool RF22init(void)
@@ -190,10 +226,11 @@ bool RF22init(void)
     _deviceType = spiRead(RF22_REG_00_DEVICE_TYPE);
     if (   _deviceType != RF22_DEVICE_TYPE_RX_TRX
         && _deviceType != RF22_DEVICE_TYPE_TX)
-	return FALSE;
+	return false;
 
 	// Set up interrupt handler
-    InitInterrupt();   // Le: interrupt from a FALLING EDGE(nIrq), see pin.c
+    rfSetInterruptCallback(handleInterrupt);
+//    InitInterrupt();   // Le: interrupt from a FALLING EDGE(nIrq), see pin.c
 
     clearTxBuf();
     clearRxBuf();
@@ -222,7 +259,7 @@ bool RF22init(void)
     setPreambleLength(8);
     uint8_t syncwords[] = { 0x2d, 0xd4 };
     setSyncWords(syncwords, sizeof(syncwords));
-    setPromiscuous(FALSE);
+    setPromiscuous(false);
     // Check the TO header against RF22_DEFAULT_NODE_ADDRESS
     spiWrite(RF22_REG_3F_CHECK_HEADER3, RF22_DEFAULT_NODE_ADDRESS);
     // Set the default transmit header values
@@ -252,12 +289,12 @@ bool RF22init(void)
     setTxPower(RF22_TXPOW_8DBM);
 //    setTxPower(RF22_TXPOW_17DBM);
 
-    return TRUE;
+    return true;
 }
 
 uint8_t spiRead(uint8_t reg)
 {
-	GPIO_ResetBits(RF_PORT, RF_SS_Pin);
+	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
@@ -266,13 +303,14 @@ uint8_t spiRead(uint8_t reg)
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_RXNE) == RESET);
     /* Read SPI1 received data */
 	uint8_t val = SPI_I2S_ReceiveData(SPI1);
-	GPIO_SetBits(RF_PORT, RF_SS_Pin);
+	RADIO_DIS_CS();
+
 	return val;
 }
 
 void spiWrite(uint8_t reg, uint8_t val)
 {
-	GPIO_ResetBits(RF_PORT, RF_SS_Pin);
+	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
@@ -281,12 +319,12 @@ void spiWrite(uint8_t reg, uint8_t val)
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
 	SPI_I2S_SendData(SPI1, val);
-	GPIO_SetBits(RF_PORT, RF_SS_Pin);
+	RADIO_DIS_CS();
 }
 
 void spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 {
-	GPIO_ResetBits(RF_PORT, RF_SS_Pin);
+	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
@@ -298,12 +336,12 @@ void spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 	    /* Read SPI1 received data */
 		*dest++ = SPI_I2S_ReceiveData(SPI1);
 	}
-	GPIO_SetBits(RF_PORT, RF_SS_Pin);
+	RADIO_DIS_CS();
 }
 
 void spiBurstWrite(uint8_t reg, uint8_t* src, uint8_t len)
 {
-	GPIO_ResetBits(RF_PORT, RF_SS_Pin);
+	RADIO_EN_CS();
     /* Wait for SPI1 Tx buffer empty */
     while (SPI_I2S_GetFlagStatus(SPI1, SPI_I2S_FLAG_TXE) == RESET);
 	/* Send SPI1 data */
@@ -315,7 +353,7 @@ void spiBurstWrite(uint8_t reg, uint8_t* src, uint8_t len)
 		/* Send SPI1 data */
 		SPI_I2S_SendData(SPI1, *src++);
 	}
-	GPIO_SetBits(RF_PORT, RF_SS_Pin);
+	RADIO_DIS_CS();
 }
 /* --------------------------------------------------------------- */
 void handleInterrupt()
@@ -401,7 +439,7 @@ void handleInterrupt()
     	_txGood++;
 		// Transmission does not automatically clear the tx buffer.
 		// Could retransmit if we wanted
-    	_txPacketSent = TRUE;
+    	_txPacketSent = true;
     	// RF22 transitions automatically to Idle
     	_mode = RF22_MODE_IDLE;
     }
@@ -419,7 +457,7 @@ void handleInterrupt()
 		_rxGood++;
 		_bufLen += len;
 		_mode = RF22_MODE_IDLE;
-		_rxBufValid = TRUE;
+		_rxBufValid = true;
     }
     else
     if (_lastInterruptFlags[0] & RF22_ICRCERROR)
@@ -494,7 +532,7 @@ bool setFrequency(float centre)
 {
     uint8_t fbsel = RF22_SBSEL;
     if (centre < 240.0 || centre > 960.0) // 930.0 for early silicon
-    	return FALSE;
+    	return false;
 
     if (centre >= 480.0)
     {
@@ -597,13 +635,13 @@ void setModemRegisters(ModemConfig* config)
 bool setModemConfig(ModemConfigChoice index)
 {
     if (index > (sizeof(MODEM_CONFIG_TABLE) / sizeof(ModemConfig)))
-        return FALSE;
+        return false;
 
     ModemConfig cfg;
     memcpy(&cfg, &MODEM_CONFIG_TABLE[index], sizeof(ModemConfig));
     setModemRegisters(&cfg);
 
-    return TRUE;
+    return true;
 }
 
 // REVISIT: top bit is in Header Control 2 0x33
@@ -621,7 +659,7 @@ void setSyncWords(uint8_t* syncWords, uint8_t len)
 void clearRxBuf()
 {
     _bufLen = 0;
-    _rxBufValid = FALSE;
+    _rxBufValid = false;
 }
 
 bool available()
@@ -643,8 +681,8 @@ bool waitAvailableTimeout(uint16_t timeout)
     unsigned long endtime = millis() + timeout;
     while (millis() < endtime)
 	if (available())
-	    return TRUE;
-    return FALSE;
+	    return true;
+    return false;
 }
 
 void waitPacketSent()
@@ -655,19 +693,19 @@ void waitPacketSent()
 bool recv(uint8_t* buf, uint8_t* len)
 {
     if (!available())
-    	return FALSE;
+    	return false;
     if (*len > _bufLen)
     	*len = _bufLen;
     memcpy(buf, _buf, *len);
     clearRxBuf();
-    return TRUE;
+    return true;
 }
 
 void clearTxBuf()
 {
     _bufLen = 0;
     _txBufSentIndex = 0;
-    _txPacketSent = FALSE;
+    _txPacketSent = false;
 }
 
 void startTransmit()
@@ -682,7 +720,7 @@ void restartTransmit()
 {
     _mode = RF22_MODE_IDLE;
     _txBufSentIndex = 0;
-    _txPacketSent = FALSE;
+    _txPacketSent = false;
 //	    Serial.println("Restart");
     startTransmit();
 }
@@ -692,7 +730,7 @@ bool send(uint8_t* data, uint8_t len)
     setModeIdle();
     fillTxBuf(data, len);
     startTransmit();
-    return TRUE;
+    return true;
 }
 
 bool fillTxBuf(uint8_t* data, uint8_t len)
@@ -704,10 +742,10 @@ bool fillTxBuf(uint8_t* data, uint8_t len)
 bool appendTxBuf(uint8_t* data, uint8_t len)
 {
     if (((uint16_t)_bufLen + len) > RF22_MAX_MESSAGE_LEN)
-	return FALSE;
+	return false;
     memcpy(_buf + _bufLen, data, len);
     _bufLen += len;
-    return TRUE;
+    return true;
 }
 
 // Assumption: there is currently <= RF22_TXFFAEM_THRESHOLD bytes in the Tx FIFO
