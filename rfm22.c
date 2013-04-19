@@ -121,11 +121,11 @@ static void SpiInit(void)
 	extiInit();
 
 	/* Enable SPI and GPIO clocks */
-	RCC_APB1PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF |
+	RCC_APB2PeriphClockCmd(RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF |
 	                       RADIO_GPIO_IRQ_PERIF, ENABLE);
 
 	/* Enable SPI and GPIO clocks */
-//	RCC_APB1PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
+	RCC_APB2PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
 //
 //	/* Configure main clock */
 //	GPIO_InitStructure.GPIO_Pin = RADIO_GPIO_CLK;
