@@ -9,7 +9,21 @@ int main(void)
 	vRCCInit();
 	nvicInit();
 
-	RF22init();
+	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);
+	GPIO_InitTypeDef GPIO_InitStructure;
+
+    //Cannot start the main oscillator: red/green LED of death...
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
+    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
+
+    GPIO_Init(GPIOF, &GPIO_InitStructure);
+
+	if(RF22init()){
+		GPIO_SetBits(GPIOB, GPIO_Pin_6);
+	}else{
+		GPIO_SetBits(GPIOF, GPIO_Pin_7);
+	}
 
     while(1)
     {
@@ -61,6 +75,7 @@ static void vRCCInit(void)
 		/* Wait till PLL is used as system clock source */
 		while (RCC_GetSYSCLKSource() != 0x08);
 	} else {
+		RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);
 		GPIO_InitTypeDef GPIO_InitStructure;
 
 	    //Cannot start the main oscillator: red/green LED of death...
@@ -68,10 +83,10 @@ static void vRCCInit(void)
 	    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
 
-	    GPIO_Init(GPIOB, &GPIO_InitStructure);
+	    GPIO_Init(GPIOF, &GPIO_InitStructure);
 
-	    GPIO_ResetBits(GPIOB, GPIO_Pin_5);
-	    GPIO_ResetBits(GPIOB, GPIO_Pin_7);
+	    GPIO_ResetBits(GPIOF, GPIO_Pin_5);
+	    GPIO_ResetBits(GPIOF, GPIO_Pin_7);
 
 	    //Cannot start xtal oscillator!
 	    while(1);

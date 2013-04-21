@@ -6,6 +6,30 @@
 #include "stm32f10x_conf.h"
 #include "rfm22reg.h"
 
+/* Defines for the SPI and GPIO pins used to drive the SPI Flash */
+#define RADIO_GPIO_CS             GPIO_Pin_4
+#define RADIO_GPIO_CS_PORT        GPIOC
+#define RADIO_GPIO_CS_PERIF       RCC_APB2Periph_GPIOC
+
+//#define RADIO_GPIO_CLK            GPIO_Pin_5
+//#define RADIO_GPIO_CLK_PORT       GPIOA
+//#define RADIO_GPIO_CLK_PERIF      RCC_APB2Periph_GPIOA
+
+#define RADIO_GPIO_IRQ            GPIO_Pin_5
+#define RADIO_GPIO_IRQ_PORT       GPIOC
+#define RADIO_GPIO_IRQ_PERIF      RCC_APB2Periph_GPIOC
+#define RADIO_GPIO_IRQ_SRC_PORT   GPIO_PortSourceGPIOC
+#define RADIO_GPIO_IRQ_SRC        GPIO_PinSource5
+#define RADIO_GPIO_IRQ_LINE       EXTI_Line5
+
+#define RADIO_SPI                 SPI1
+#define RADIO_SPI_CLK             RCC_APB2Periph_SPI1
+#define RADIO_GPIO_SPI_PORT       GPIOA
+#define RADIO_GPIO_SPI_CLK        RCC_APB2Periph_GPIOA
+#define RADIO_GPIO_SPI_SCK        GPIO_Pin_5
+#define RADIO_GPIO_SPI_MISO       GPIO_Pin_6
+#define RADIO_GPIO_SPI_MOSI       GPIO_Pin_7
+
 // This is the bit in the SPI address that marks it as a write
 #define RF22_SPI_WRITE_MASK 0x80
 

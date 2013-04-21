@@ -11,7 +11,7 @@ void nvicInit(void)
   /* Set the Vector Table base location at 0x08000000 */
   NVIC_SetVectorTable(NVIC_VectTab_FLASH, 0x0);
 #endif
-  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_4);
+  NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
 }
 
 #ifdef NVIC_NOT_USED_BY_FREERTOS

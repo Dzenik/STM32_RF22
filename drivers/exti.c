@@ -6,7 +6,7 @@
 #include "nvic.h"
 #include "rfm22.h"
 
-#define RADIO_GPIO_IRQ_LINE EXTI_Line9
+//#define RADIO_GPIO_IRQ_LINE EXTI_Line9
 
 static bool isInit;
 
