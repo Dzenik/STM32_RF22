@@ -3,9 +3,14 @@
 #include "nvic.h"
 
 static void vRCCInit(void);
+void Delay(__IO uint32_t nCount);
+void LED_Toggle(uint16_t led);
+
 
 int main(void)
 {
+	uint8_t data[12] = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'};
+
 	vRCCInit();
 	nvicInit();
 
@@ -19,14 +24,17 @@ int main(void)
 
     GPIO_Init(GPIOF, &GPIO_InitStructure);
 
-	if(RF22init()){
-		GPIO_SetBits(GPIOB, GPIO_Pin_6);
-	}else{
-		GPIO_SetBits(GPIOF, GPIO_Pin_7);
+	if(!RF22init()){
+		LED_Toggle(GPIO_Pin_6);
+		Delay(0x5FFFF);
 	}
 
     while(1)
     {
+    	Delay(0x5FFFF);
+		send(data, 12);
+		LED_Toggle(GPIO_Pin_7);
+
     }
 }
 /* ------------------------------------------------------------------------ */
@@ -79,16 +87,27 @@ static void vRCCInit(void)
 		GPIO_InitTypeDef GPIO_InitStructure;
 
 	    //Cannot start the main oscillator: red/green LED of death...
-	    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_5 | GPIO_Pin_7;
+	    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_10;
 	    GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
 	    GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
 
 	    GPIO_Init(GPIOF, &GPIO_InitStructure);
 
-	    GPIO_ResetBits(GPIOF, GPIO_Pin_5);
-	    GPIO_ResetBits(GPIOF, GPIO_Pin_7);
-
-	    //Cannot start xtal oscillator!
-	    while(1);
+        //Cannot start xtal oscillator!
+	    while(1)
+	    {
+			LED_Toggle(GPIO_Pin_10);
+			Delay(0x5FFFF);
+	    }
 	}
+}
+
+void LED_Toggle(uint16_t led)
+{
+  GPIO_WriteBit(GPIOF, led, (BitAction)!GPIO_ReadOutputDataBit(GPIOF, led));
+}
+
+void Delay(__IO uint32_t nCount)
+{
+  for(; nCount != 0; nCount--);
 }

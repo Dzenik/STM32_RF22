@@ -1,15 +1,49 @@
-#include "rfm22.h"
-#include "exti.h"
-#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+#include "rfm22.h"
+#include "exti.h"
 
 
 
 /* Usefull macro */
 #define RADIO_EN_CS() GPIO_ResetBits(RADIO_GPIO_CS_PORT, RADIO_GPIO_CS)
 #define RADIO_DIS_CS() GPIO_SetBits(RADIO_GPIO_CS_PORT, RADIO_GPIO_CS)
+
+
+// This is the bit in the SPI address that marks it as a write
+#define RF22_SPI_WRITE_MASK 0x80
+
+// This is the maximum message length that can be supported by this library. Limited by
+// the message length octet in the header. Yes, 255 is correct even though the FIFO size in the RF22 is only
+// 64 octets. We use interrupts to refil the Tx FIFO during transmission and to empty the
+// Rx FIF during reception
+// Can be pre-defined to a smaller size (to save SRAM) prior to including this header
+#ifndef RF22_MAX_MESSAGE_LEN
+#define RF22_MAX_MESSAGE_LEN 255
+#endif
+
+// Max number of octets the RF22 Rx and Tx FIFOs can hold
+#define RF22_FIFO_SIZE 64
+
+// Keep track of the mode the RF22 is in
+#define RF22_MODE_IDLE         0
+#define RF22_MODE_RX           1
+#define RF22_MODE_TX           2
+
+// These values we set for FIFO thresholds are actually the same as the POR values
+#define RF22_TXFFAEM_THRESHOLD 4
+#define RF22_RXFFAFULL_THRESHOLD 55
+
+// This is the default node address,
+#define RF22_DEFAULT_NODE_ADDRESS 0
+
+// This address in the TO addreess signifies a broadcast
+#define RF22_BROADCAST_ADDRESS 0xff
+
+// Number of registers to be passed to setModemConfig()
+#define RF22_NUM_MODEM_CONFIG_REGS 18
 
 
 // These are indexed by the values of ModemConfigChoice
@@ -302,34 +336,22 @@ void spiWrite(uint8_t reg, uint8_t val)
 void spiBurstRead(uint8_t reg, uint8_t* dest, uint8_t len)
 {
 	RADIO_EN_CS();
-    /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
-	/* Send SPI1 data */
-	SPI_I2S_SendData(RADIO_SPI, reg & ~RF22_SPI_WRITE_MASK);
+
+	spiTransfer(reg & ~RF22_SPI_WRITE_MASK);
 	while(len--)
-	{
-	    /* Wait for SPI1 data reception */
-	    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_RXNE) == RESET);
-	    /* Read SPI1 received data */
-		*dest++ = SPI_I2S_ReceiveData(RADIO_SPI);
-	}
+		*dest++ = spiTransfer(0x00);
+
 	RADIO_DIS_CS();
 }
 
 void spiBurstWrite(uint8_t reg, uint8_t* src, uint8_t len)
 {
 	RADIO_EN_CS();
-    /* Wait for SPI1 Tx buffer empty */
-    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
-	/* Send SPI1 data */
-	SPI_I2S_SendData(RADIO_SPI, reg | RF22_SPI_WRITE_MASK);
+
+	spiTransfer(reg | RF22_SPI_WRITE_MASK);
 	while(len--)
-	{
-	    /* Wait for SPI1 Tx buffer empty */
-	    while (SPI_I2S_GetFlagStatus(RADIO_SPI, SPI_I2S_FLAG_TXE) == RESET);
-		/* Send SPI1 data */
-		SPI_I2S_SendData(RADIO_SPI, *src++);
-	}
+		spiTransfer(*src++);
+
 	RADIO_DIS_CS();
 }
 /* --------------------------------------------------------------- */
