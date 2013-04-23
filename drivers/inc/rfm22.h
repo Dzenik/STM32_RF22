@@ -27,6 +27,14 @@
 #define RADIO_GPIO_SPI_MISO       GPIO_Pin_6
 #define RADIO_GPIO_SPI_MOSI       GPIO_Pin_7
 
+// This is the maximum message length that can be supported by this library. Limited by
+// the message length octet in the header. Yes, 255 is correct even though the FIFO size in the RF22 is only
+// 64 octets. We use interrupts to refil the Tx FIFO during transmission and to empty the
+// Rx FIF during reception
+// Can be pre-defined to a smaller size (to save SRAM) prior to including this header
+#ifndef RF22_MAX_MESSAGE_LEN
+#define RF22_MAX_MESSAGE_LEN 50
+#endif
 
 /// \brief Defines register values for a set of modem configuration registers
 ///
@@ -164,7 +172,7 @@ uint8_t        statusRead();
  * \param[in] adcoffs Amplifier offseet (0 to 15).
  * \return The analog value. 0 to 255.
  */
-uint8_t        adcRead(uint8_t adcsel,
+uint8_t        adcRead(uint8_t adcsel ,
 					   uint8_t adcref ,
 					   uint8_t adcgain ,
 					   uint8_t adcoffs );
@@ -194,9 +202,11 @@ void           setWutPeriod(uint16_t wtm, uint8_t wtr, uint8_t wtd);
 /* Sets the transmitter and receiver centre frequency
  * \param[in] centre Frequency in MHz. 240.0 to 960.0. Caution, some versions of RF22 and derivatives
  * implemented more restricted frequency ranges.
+ * \param[in] afcPullInRange Sets the AF Pull In Range in MHz. Defaults to 0.05MHz (50kHz). Range is 0.0 to 0.159375
+ * for frequencies 240.0 to 480MHz, and 0.0 to 0.318750MHz for  frequencies 480.0 to 960MHz,
  * \return true if the selected frquency centre + (fhch * fhs) is within range
  */
-bool           setFrequency(float centre);
+bool           setFrequency(float centre, float afcPullInRange);
 
 /* Sets the frequency hopping step size.
  * \param[in] fhs Frequency Hopping step size in 10kHz increments

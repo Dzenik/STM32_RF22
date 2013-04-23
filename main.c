@@ -1,6 +1,10 @@
+#include <stdio.h>
 #include "stm32f10x.h"
 #include "rfm22.h"
 #include "nvic.h"
+#include "ili9320.h"
+
+static __IO uint32_t TimingDelay;
 
 static void vRCCInit(void);
 void Delay(__IO uint32_t nCount);
@@ -9,16 +13,35 @@ void LED_Toggle(uint16_t led);
 
 int main(void)
 {
-	uint8_t data[12] = {'H', 'e', 'l', 'l', 'o', ' ', 'W', 'o', 'r', 'l', 'd', '!'};
+	uint8_t data[2];
+	uint8_t len = sizeof(data);
+	uint8_t rssi = 0;
+	char device_str1[20], device_str2[20], device_str3[20];
+	uint32_t tCount = 0;
+	uint8_t adcVal = 0;
+	float tmpf;
 
 	vRCCInit();
+
+	if (SysTick_Config(SystemCoreClock / 1000))
+	{
+		while(1);
+	}
+
 	nvicInit();
+
+	/* Initialize the LCD */
+	ili9320_Initializtion();
+
+	/* Clear the LCD */
+	ili9320_Clear(Black);
+	ili9320_DisplayStringLine(Line0, "                Warning                 ",White,Blue);
 
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOF, ENABLE);
 	GPIO_InitTypeDef GPIO_InitStructure;
 
     //Cannot start the main oscillator: red/green LED of death...
-    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7;
+    GPIO_InitStructure.GPIO_Pin = GPIO_Pin_6 | GPIO_Pin_7 | GPIO_Pin_8;
     GPIO_InitStructure.GPIO_Mode = GPIO_Mode_Out_PP;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_10MHz;
 
@@ -26,15 +49,39 @@ int main(void)
 
 	if(!RF22init()){
 		LED_Toggle(GPIO_Pin_6);
-		Delay(0x5FFFF);
+		Delay(1000);
 	}
 
     while(1)
     {
-    	Delay(0x5FFFF);
-		send(data, 12);
-		LED_Toggle(GPIO_Pin_7);
+    	data[0] = 0;
+    	data[1] = rssi;
+    	tCount = 32500;
 
+//    	send(data, sizeof(data));
+//    	waitPacketSent();
+
+    	LED_Toggle(GPIO_Pin_8);
+    	while(--tCount != 0)
+    	{
+			if(recv(data, &len))
+			{
+				data[1] = rssi;
+				send(data, sizeof(data));
+				waitPacketSent();
+				LED_Toggle(GPIO_Pin_7);
+			}
+			rssi = rssiRead();
+    	}
+
+    	adcVal = temperatureRead(0x00, 0);
+    	tmpf = adcVal * 0.1953125;
+    	sprintf(device_str1,"RSSI R: %04d",data[0]);
+		sprintf(device_str2,"RSSI L: %04d",data[1]);
+		sprintf(device_str3,"Temp: %.2f", tmpf);
+		ili9320_DisplayStringLine(Line1, device_str1, White, Black);
+		ili9320_DisplayStringLine(Line2, device_str2, White, Black);
+		ili9320_DisplayStringLine(Line3, device_str3, White, Black);
     }
 }
 /* ------------------------------------------------------------------------ */
@@ -97,7 +144,8 @@ static void vRCCInit(void)
 	    while(1)
 	    {
 			LED_Toggle(GPIO_Pin_10);
-			Delay(0x5FFFF);
+			uint32_t i = 0x5FFFF;
+			while(--i != 0x00);
 	    }
 	}
 }
@@ -109,5 +157,14 @@ void LED_Toggle(uint16_t led)
 
 void Delay(__IO uint32_t nCount)
 {
-  for(; nCount != 0; nCount--);
+	TimingDelay = nCount;
+	while(TimingDelay != 0);
+}
+
+void SysTick_Handler(void)
+{
+	if (TimingDelay != 0x00)
+	{
+		TimingDelay--;
+	}
 }

@@ -15,15 +15,6 @@
 // This is the bit in the SPI address that marks it as a write
 #define RF22_SPI_WRITE_MASK 0x80
 
-// This is the maximum message length that can be supported by this library. Limited by
-// the message length octet in the header. Yes, 255 is correct even though the FIFO size in the RF22 is only
-// 64 octets. We use interrupts to refil the Tx FIFO during transmission and to empty the
-// Rx FIF during reception
-// Can be pre-defined to a smaller size (to save SRAM) prior to including this header
-#ifndef RF22_MAX_MESSAGE_LEN
-#define RF22_MAX_MESSAGE_LEN 255
-#endif
-
 // Max number of octets the RF22 Rx and Tx FIFOs can hold
 #define RF22_FIFO_SIZE 64
 
@@ -134,11 +125,11 @@ static void SpiInit(void)
 	/* Enable the EXTI interrupt router */
 	extiInit();
 
-	/* Enable SPI and GPIO clocks */
+	/* Enable SCK, MOSI and MISO GPIO clocks */
 	RCC_APB2PeriphClockCmd(RCC_APB2Periph_AFIO | RADIO_GPIO_SPI_CLK | RADIO_GPIO_CS_PERIF |
 	                       RADIO_GPIO_IRQ_PERIF, ENABLE);
 
-	/* Enable SPI and GPIO clocks */
+	/* Enable the SPI periph */
 	RCC_APB2PeriphClockCmd(RADIO_SPI_CLK, ENABLE);
 
 	/* Configure SPI pins: SCK, MISO and MOSI */
@@ -286,7 +277,7 @@ bool RF22init(void)
     spiWrite(RF22_REG_06_INTERRUPT_ENABLE2, RF22_ENPREAVAL);
 
     // Set some defaults. An innocuous ISM frequency
-    setFrequency(434.0);
+    setFrequency(434.0, 0.05);
 
     // Some slow, reliable default speed and modulation
     setModemConfig(FSK_Rb2_4Fd36);
@@ -506,6 +497,13 @@ uint8_t adcRead(uint8_t adcsel, uint8_t adcref, uint8_t adcgain, uint8_t adcoffs
     return spiRead(RF22_REG_11_ADC_VALUE);
 }
 
+uint8_t temperatureRead(uint8_t tsrange, uint8_t tvoffs)
+{
+    spiWrite(RF22_REG_12_TEMPERATURE_SENSOR_CALIBRATION, tsrange | RF22_ENTSOFFS);
+    spiWrite(RF22_REG_13_TEMPERATURE_VALUE_OFFSET, tvoffs);
+    return adcRead(RF22_ADCSEL_INTERNAL_TEMPERATURE_SENSOR | RF22_ADCREF_BANDGAP_VOLTAGE, 0x00, 0, 0);
+}
+
 uint16_t wutRead()
 {
     uint8_t buf[2];
@@ -527,9 +525,10 @@ void setWutPeriod(uint16_t wtm, uint8_t wtr, uint8_t wtd)
 // Returns true if centre + (fhch * fhs) is within limits
 // Caution, different versions of the RF22 suport different max freq
 // so YMMV
-bool setFrequency(float centre)
+bool setFrequency(float centre, float afcPullInRange)
 {
     uint8_t fbsel = RF22_SBSEL;
+    uint8_t afclimiter;
     if (centre < 240.0 || centre > 960.0) // 930.0 for early silicon
     	return false;
 
@@ -537,6 +536,13 @@ bool setFrequency(float centre)
     {
 		centre /= 2;
 		fbsel |= RF22_HBSEL;
+		afclimiter = afcPullInRange * 1000000.0 / 1250.0;
+    }
+    else
+    {
+		if (afcPullInRange < 0.0 || afcPullInRange > 0.159375)
+			return false;
+		afclimiter = afcPullInRange * 1000000.0 / 625.0;
     }
 
     centre /= 10.0;
@@ -551,6 +557,7 @@ bool setFrequency(float centre)
     spiWrite(RF22_REG_75_FREQUENCY_BAND_SELECT, fbsel);
     spiWrite(RF22_REG_76_NOMINAL_CARRIER_FREQUENCY1, fc >> 8);
     spiWrite(RF22_REG_77_NOMINAL_CARRIER_FREQUENCY0, fc & 0xff);
+    spiWrite(RF22_REG_2A_AFC_LIMITER, afclimiter);
     return !(statusRead() & RF22_FREQERR);
 }
 
