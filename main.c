@@ -13,7 +13,7 @@ void LED_Toggle(uint16_t led);
 
 int main(void)
 {
-	uint8_t data[2];
+	uint8_t data[RF22_MAX_MESSAGE_LEN] = {"Hello World!"};
 	uint8_t len = sizeof(data);
 	uint8_t rssi = 0;
 	char device_str1[20], device_str2[20], device_str3[20];
@@ -54,12 +54,12 @@ int main(void)
 
     while(1)
     {
-    	data[0] = 0;
+    	data[0] = 1;
     	data[1] = rssi;
     	tCount = 32500;
 
-//    	send(data, sizeof(data));
-//    	waitPacketSent();
+    	send(data, sizeof(data));
+    	waitPacketSent();
 
     	LED_Toggle(GPIO_Pin_8);
     	while(--tCount != 0)
@@ -68,7 +68,7 @@ int main(void)
 			{
 				data[1] = rssi;
 				send(data, sizeof(data));
-				waitPacketSent();
+				//waitPacketSent();
 				LED_Toggle(GPIO_Pin_7);
 			}
 			rssi = rssiRead();
