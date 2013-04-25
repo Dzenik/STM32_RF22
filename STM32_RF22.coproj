@@ -25,7 +25,7 @@
         <Option name="nostartfiles" value="1"/>
         <Option name="DiscardUnusedSections" value="1"/>
         <LinkedLibraries>
-          <Libset dir="..\..\..\..\program files\gnu tools arm embedded\4.7 2012q4\arm-none-eabi\lib\armv7-m\" libs="m"/>
+          <Libset dir="..\..\..\..\program files (x86)\gnu tools arm embedded\4.7 2012q4\arm-none-eabi\lib\armv7-m\" libs="m"/>
         </LinkedLibraries>
         <MemoryAreas debugInFlashNotRAM="1">
           <Memory name="IROM1" type="ReadOnly" size="0x00080000" startValue="0x08000000"/>
@@ -90,11 +90,11 @@
     <File name="cmsis_boot" path="" type="2"/>
     <File name="stm_lib/src/stm32f10x_exti.c" path="stm_lib/src/stm32f10x_exti.c" type="1"/>
     <File name="drivers/inc/ili9320.h" path="drivers/inc/ili9320.h" type="1"/>
+    <File name="drivers/src/nvic.c" path="drivers/nvic.c" type="1"/>
     <File name="stm_lib/src/stm32f10x_rcc.c" path="stm_lib/src/stm32f10x_rcc.c" type="1"/>
     <File name="stm_lib/inc/stm32f10x_fsmc.h" path="stm_lib/inc/stm32f10x_fsmc.h" type="1"/>
-    <File name="drivers/src/nvic.c" path="drivers/nvic.c" type="1"/>
-    <File name="cmsis_boot/startup" path="" type="2"/>
     <File name="drivers" path="" type="2"/>
+    <File name="cmsis_boot/startup" path="" type="2"/>
     <File name="drivers/inc/exti.h" path="drivers/inc/exti.h" type="1"/>
     <File name="drivers/src/ili9320.c" path="drivers/ili9320.c" type="1"/>
     <File name="cmsis_boot/startup/startup_stm32f10x_hd.c" path="cmsis_boot/startup/startup_stm32f10x_hd.c" type="1"/>
@@ -104,8 +104,8 @@
     <File name="drivers/src/rfm22.c" path="drivers/rfm22.c" type="1"/>
     <File name="cmsis_boot/stm32f10x_conf.h" path="cmsis_boot/stm32f10x_conf.h" type="1"/>
     <File name="stm_lib/src" path="" type="2"/>
-    <File name="cmsis" path="" type="2"/>
     <File name="stm_lib/inc/stm32f10x_flash.h" path="stm_lib/inc/stm32f10x_flash.h" type="1"/>
+    <File name="cmsis" path="" type="2"/>
     <File name="stm_lib" path="" type="2"/>
     <File name="syscalls/syscalls.c" path="syscalls/syscalls.c" type="1"/>
     <File name="stm_lib/src/stm32f10x_fsmc.c" path="stm_lib/src/stm32f10x_fsmc.c" type="1"/>
@@ -119,8 +119,8 @@
     <File name="syscalls" path="" type="2"/>
     <File name="stm_lib/src/stm32f10x_usart.c" path="stm_lib/src/stm32f10x_usart.c" type="1"/>
     <File name="drivers/inc/rfm22reg.h" path="drivers/inc/rfm22reg.h" type="1"/>
-    <File name="drivers/src" path="" type="2"/>
     <File name="drivers/inc/ili9320_font.h" path="drivers/inc/ili9320_font.h" type="1"/>
+    <File name="drivers/src" path="" type="2"/>
     <File name="drivers/inc" path="" type="2"/>
     <File name="stm_lib/src/stm32f10x_gpio.c" path="stm_lib/src/stm32f10x_gpio.c" type="1"/>
     <File name="stm_lib/inc" path="" type="2"/>

@@ -8,7 +8,7 @@ static __IO uint32_t TimingDelay;
 
 static void vRCCInit(void);
 void Delay(__IO uint32_t nCount);
-void LED_Toggle(uint16_t led);
+static void LED_Toggle(uint16_t led, char n);
 
 
 int main(void)
@@ -48,41 +48,58 @@ int main(void)
     GPIO_Init(GPIOF, &GPIO_InitStructure);
 
 	if(!RF22init()){
-		LED_Toggle(GPIO_Pin_6);
+		LED_Toggle(GPIO_Pin_6, 2);
 		Delay(1000);
 	}
 
-    while(1)
-    {
-    	data[0] = 1;
-    	data[1] = rssi;
-    	tCount = 32500;
+	while(1)
+	{
+		waitAvailable();
+		if(recv(data, &len))
+		{
+			uint8_t buf[RF22_MAX_MESSAGE_LEN] = "And hello back to you";
+			send(buf, sizeof(buf));
+			waitPacketSent();
+			LED_Toggle(GPIO_Pin_7, 1);
+		}
+		else
+		{
+			LED_Toggle(GPIO_Pin_6, 2);
+		}
+		LED_Toggle(GPIO_Pin_8, 5);
+	}
 
-    	send(data, sizeof(data));
-    	waitPacketSent();
-
-    	LED_Toggle(GPIO_Pin_8);
-    	while(--tCount != 0)
-    	{
-			if(recv(data, &len))
-			{
-				data[1] = rssi;
-				send(data, sizeof(data));
-				//waitPacketSent();
-				LED_Toggle(GPIO_Pin_7);
-			}
-			rssi = rssiRead();
-    	}
-
-    	adcVal = temperatureRead(0x00, 0);
-    	tmpf = adcVal * 0.1953125;
-    	sprintf(device_str1,"RSSI R: %04d",data[0]);
-		sprintf(device_str2,"RSSI L: %04d",data[1]);
-		sprintf(device_str3,"Temp: %.2f", tmpf);
-		ili9320_DisplayStringLine(Line1, device_str1, White, Black);
-		ili9320_DisplayStringLine(Line2, device_str2, White, Black);
-		ili9320_DisplayStringLine(Line3, device_str3, White, Black);
-    }
+//    while(1)
+//    {
+//    	data[0] = 1;
+//    	data[1] = rssi;
+//    	tCount = 32500;
+//
+//    	send(data, sizeof(data));
+//    	waitPacketSent();
+//
+//    	LED_Toggle(GPIO_Pin_8);
+//    	while(--tCount != 0)
+//    	{
+//			if(recv(data, &len))
+//			{
+//				data[1] = rssi;
+//				send(data, sizeof(data));
+//				//waitPacketSent();
+//				LED_Toggle(GPIO_Pin_7);
+//			}
+//			rssi = rssiRead();
+//    	}
+//
+//    	adcVal = temperatureRead(0x00, 0);
+//    	tmpf = adcVal * 0.1953125;
+//    	sprintf(device_str1,"RSSI R: %04d",data[0]);
+//		sprintf(device_str2,"RSSI L: %04d",data[1]);
+//		sprintf(device_str3,"Temp: %.2f", tmpf);
+//		ili9320_DisplayStringLine(Line1, device_str1, White, Black);
+//		ili9320_DisplayStringLine(Line2, device_str2, White, Black);
+//		ili9320_DisplayStringLine(Line3, device_str3, White, Black);
+//    }
 }
 /* ------------------------------------------------------------------------ */
 static void vRCCInit(void)
@@ -143,16 +160,20 @@ static void vRCCInit(void)
         //Cannot start xtal oscillator!
 	    while(1)
 	    {
-			LED_Toggle(GPIO_Pin_10);
+			LED_Toggle(GPIO_Pin_10, 2);
 			uint32_t i = 0x5FFFF;
 			while(--i != 0x00);
 	    }
 	}
 }
 
-void LED_Toggle(uint16_t led)
+void LED_Toggle(uint16_t led, char n)
 {
-  GPIO_WriteBit(GPIOF, led, (BitAction)!GPIO_ReadOutputDataBit(GPIOF, led));
+	char i;
+	for(i=0; i<2*n; ++i){
+		Delay(100);
+		GPIO_WriteBit(GPIOF, led, (BitAction)!GPIO_ReadOutputDataBit(GPIOF, led));
+	}
 }
 
 void Delay(__IO uint32_t nCount)

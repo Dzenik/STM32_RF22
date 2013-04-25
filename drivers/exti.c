@@ -34,7 +34,7 @@ bool extiTest(void)
 
 void extiInterruptHandler(void)
 {
-  if (EXTI_GetITStatus(RADIO_GPIO_IRQ_LINE)==SET)
+  if (EXTI_GetITStatus(RADIO_GPIO_IRQ_LINE) == SET)
   {
     rfIsr();
     EXTI_ClearITPendingBit(RADIO_GPIO_IRQ_LINE);
