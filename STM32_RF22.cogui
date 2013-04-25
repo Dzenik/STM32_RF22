@@ -15,9 +15,6 @@
 </editorArea>
 </editors>
 <views>
-<view id="org.eclipse.debug.ui.ExpressionView" partName="Expressions">
-<viewState/>
-</view>
 <view id="org.eclipse.ui.views.ProgressView" partName="Progress">
 <viewState/>
 </view>
@@ -48,9 +45,6 @@
 <view id="org.coocox.component.ui.Help" partName="Help">
 <viewState/>
 </view>
-<view id="org.coocox.coassistant.view.CoAssistantView" partName="Peripherals">
-<viewState/>
-</view>
 </views>
 <perspectives activePerspective="org.coocox.builder.perspective.CoBuilder">
 <perspective editorAreaTrimState="2" editorAreaVisible="1" fixed="0" version="0.016">
@@ -79,8 +73,8 @@
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showPeripheralsAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showVariablesAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.openProjectExplorerAction"/>
-<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
+<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showRegistersAction"/>
 <hide_toolbar_item_id id="org.eclipse.cdt.debug.internal.ui.actions.ToggleInstructionStepModeAction"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
@@ -90,13 +84,12 @@
 <fastViewBars>
 <fastViewBar fastViewLocation="1024" id="org.eclipse.ui.internal.ViewStack@14cc8ce" orientation="256" selectedTabId="org.eclipse.ui.console.ConsoleView" style="0">
 <fastViews>
-<view id="org.eclipse.ui.console.ConsoleView" ratio="0.29936305"/>
+<view id="org.eclipse.ui.console.ConsoleView" ratio="0.3"/>
 </fastViews>
 </fastViewBar>
 <fastViewBar fastViewLocation="131072" id="org.eclipse.ui.internal.ViewStack@129a7d" orientation="512" selectedTabId="org.coocox.coassistant.view.CoAssistantView" style="0">
 <fastViews>
 <view id="org.coocox.component.ui.Help" ratio="0.3"/>
-<view id="org.coocox.coassistant.view.CoAssistantView" ratio="0.29973474"/>
 </fastViews>
 </fastViewBar>
 </fastViewBars>
@@ -205,7 +198,6 @@
 <view id="org.eclipse.debug.ui.VariableView"/>
 <view id="org.eclipse.ui.views.ProgressView"/>
 <view id="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser"/>
-<view id="org.eclipse.debug.ui.ExpressionView"/>
 <view id="org.coocox.builder.ui.views.ProjectView"/>
 <view id="org.eclipse.cdt.dsf.debug.ui.disassembly.view"/>
 <fastViewBars/>
@@ -227,17 +219,16 @@
 </presentation>
 </folder>
 </info>
-<info folder="true" part="org.eclipse.ui.internal.ViewStack@495b3c" ratio="0.49959838" ratioLeft="622" ratioRight="623" relationship="2" relative="org.eclipse.ui.internal.ViewStack@1f09373">&#x0A;<folder activePageID="org.eclipse.debug.ui.ExpressionView" appearance="2" expanded="2">&#x0A;<page content="org.coocox.codebugger.trace.ui.traceview" label="Semihosting"/>
+<info folder="true" part="org.eclipse.ui.internal.ViewStack@495b3c" ratio="0.49959838" ratioLeft="622" ratioRight="623" relationship="2" relative="org.eclipse.ui.internal.ViewStack@1f09373">&#x0A;<folder activePageID="org.eclipse.debug.ui.VariableView" appearance="2" expanded="2">&#x0A;<page content="org.coocox.codebugger.trace.ui.traceview" label="Semihosting"/>
 <page content="org.eclipse.debug.ui.VariableView" label="Variables"/>
 <page content="org.eclipse.ui.views.ProgressView" label="Progress"/>
 <page content="org.eclipse.cdt.debug.ui.memory.memorybrowser.MemoryBrowser" label="Memory Browser"/>
-<page content="org.eclipse.debug.ui.ExpressionView" label="Expressions"/>
+<page content="org.eclipse.debug.ui.ExpressionView" label="LabelNotFound"/>
 <page content="org.eclipse.debug.ui.MemoryView" label="LabelNotFound"/>
 <presentation id="org.eclipse.ui.presentations.WorkbenchPresentationFactory">&#x0A;<part id="0"/>
 <part id="1"/>
 <part id="2"/>
 <part id="3"/>
-<part id="4"/>
 </presentation>
 </folder>
 </info>
@@ -272,6 +263,8 @@
 <part id="5"/>
 <part id="6"/>
 <part id="7"/>
+<part id="8"/>
+<part id="9"/>
 </presentation>
 </folder>
 </info>
@@ -304,9 +297,17 @@
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/STM32_RF22/drivers/inc/rfm22reg.h"/>
 <editorState selectionHorizontalPixel="0" selectionLength="39" selectionOffset="11429" selectionTopPixel="2880"/>
 </editor>
-<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="main.c" partName="main.c" path="C:/CooCox/CoIDE/workspace/STM32_RF22/main.c" title="main.c" tooltip="C:/CooCox/CoIDE/workspace/STM32_RF22/main.c" workbook="DefaultEditorWorkbook">
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="main.c" partName="main.c" path="C:/CooCox/CoIDE/workspace/STM32_RF22/main.c" title="main.c" tooltip="C:/CooCox/CoIDE/workspace/STM32_RF22/main.c" workbook="DefaultEditorWorkbook">
 <input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/STM32_RF22/main.c"/>
 <editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1389" selectionTopPixel="585"/>
+</editor>
+<editor activePart="true" focus="true" id="org.eclipse.cdt.ui.editor.CEditor" name="rf_test.c" partName="rf_test.c" path="C:/CooCox/CoIDE/workspace/STM32_RF22/rf_test.c" title="rf_test.c" tooltip="C:/CooCox/CoIDE/workspace/STM32_RF22/rf_test.c" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/STM32_RF22/rf_test.c"/>
+<editorState selectionHorizontalPixel="0" selectionLength="0" selectionOffset="1016" selectionTopPixel="0"/>
+</editor>
+<editor id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22.c" partName="rfm22.c" path="C:/CooCox/CoIDE/workspace/STM32_RF22/drivers/rfm22.c" title="rfm22.c" tooltip="C:/CooCox/CoIDE/workspace/STM32_RF22/drivers/rfm22.c" workbook="DefaultEditorWorkbook">
+<input factoryID="org.eclipse.ui.part.FileEditorInputFactory" path="/STM32_RF22/drivers/src/rfm22.c"/>
+<editorState selectionHorizontalPixel="0" selectionLength="12" selectionOffset="17892" selectionTopPixel="7080"/>
 </editor>
 </editors>
 <views>
@@ -320,16 +321,9 @@
 <viewState CommonNavigator.LINKING_ENABLED="0" horizontalPosition="0" org.eclipse.ui.navigator.resources.workingSets.showTopLevelWorkingSets="0" verticalPosition="0">
 <expanded>
 <element path="/STM32_RF22"/>
-<element path="/STM32_RF22/cmsis_boot"/>
-<element path="/STM32_RF22/drivers"/>
-<element path="/STM32_RF22/drivers/inc"/>
-<element path="/STM32_RF22/drivers/src"/>
-<element path="/STM32_RF22/stm_lib"/>
-<element path="/STM32_RF22/stm_lib/inc"/>
-<element path="/STM32_RF22/syscalls"/>
 </expanded>
 <selection>
-<element path="/STM32_RF22/drivers/inc/rfm22.h"/>
+<element path="/STM32_RF22"/>
 </selection>
 </viewState>
 </view>
@@ -388,8 +382,8 @@
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showPeripheralsAction"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showVariablesAction"/>
 <hide_menu_item_id id="org.coocox.builder.ui.openProjectExplorerAction"/>
-<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.trace.actions.ShowTraceControlAction"/>
+<hide_menu_item_id id="org.eclipse.debug.ui.commands.TerminateAndRelaunch"/>
 <hide_menu_item_id id="org.coocox.codebugger.configuration.showRegistersAction"/>
 <hide_toolbar_item_id id="org.eclipse.cdt.debug.internal.ui.actions.ToggleInstructionStepModeAction"/>
 <hide_toolbar_item_id id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"/>
@@ -399,7 +393,7 @@
 <fastViewBars>
 <fastViewBar fastViewLocation="1024" id="org.eclipse.ui.internal.ViewStack@14cc8ce" orientation="256" selectedTabId="org.eclipse.ui.console.ConsoleView" style="0">
 <fastViews>
-<view id="org.eclipse.ui.console.ConsoleView" ratio="0.29936305"/>
+<view id="org.eclipse.ui.console.ConsoleView" ratio="0.29909706"/>
 </fastViews>
 </fastViewBar>
 <fastViewBar fastViewLocation="131072" id="org.eclipse.ui.internal.ViewStack@129a7d" orientation="512" selectedTabId="org.coocox.coassistant.view.CoAssistantView" style="0">
@@ -570,28 +564,12 @@
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/STM32_RF22/stm_lib/src/stm32f10x_spi.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/STM32_RF22/main.c"/>
 <editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/STM32_RF22/drivers/inc/rfm22.h"/>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/STM32_RF22/rf_test.c"/>
+<editor factoryID="org.coocox.builder.ui.persistent.PersistentElementFactory" id="org.coocox.builder.ui.editors.ConfigEditor">
+<org.coocox.builder.ui.editors.ConfigEditor/>
+</editor>
+<editor factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" path="/STM32_RF22/drivers/src/rfm22.c"/>
 </editors>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
-<item historyLabel="rfm22.c" index="0">
-<position/>
-</item>
 <item historyLabel="rfm22.c" index="0">
 <position/>
 </item>
@@ -715,8 +693,30 @@
 <item historyLabel="main.c" index="2">
 <position info="not_deleted" x="448" y="0"/>
 </item>
-<item active="true" historyLabel="main.c" index="2">
+<item historyLabel="main.c" index="2">
 <position info="not_deleted" x="1391" y="0"/>
+</item>
+<item historyLabel="rf_test.c" index="4">
+<position info="not_deleted" x="382" y="0"/>
+</item>
+<item historyLabel="Configuration" index="5"/>
+<item historyLabel="rf_test.c" index="4">
+<position info="not_deleted" x="382" y="0"/>
+</item>
+<item historyLabel="rf_test.c" index="4">
+<position info="not_deleted" x="321" y="0"/>
+</item>
+<item historyLabel="rf_test.c" index="4">
+<position info="not_deleted" x="480" y="0"/>
+</item>
+<item historyLabel="rf_test.c" index="4">
+<position info="not_deleted" x="1016" y="0"/>
+</item>
+<item historyLabel="rfm22.c" index="6">
+<position info="not_deleted" x="17892" y="12"/>
+</item>
+<item active="true" historyLabel="rf_test.c" index="4">
+<position info="not_deleted" x="1016" y="0"/>
 </item>
 </navigationHistory>
 <input factoryID="org.eclipse.ui.internal.model.ResourceFactory" path="/" type="8"/>
@@ -725,52 +725,52 @@
 <actionBarAdvisor/>
 </window>
 <mruList>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="main.c" tooltip="STM32_RF22/main.c">
-<persistable path="/STM32_RF22/main.c"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22reg.h" tooltip="STM32_RF22/drivers/inc/rfm22reg.h">
-<persistable path="/STM32_RF22/drivers/inc/rfm22reg.h"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22.h" tooltip="STM32_RF22/drivers/inc/rfm22.h">
-<persistable path="/STM32_RF22/drivers/inc/rfm22.h"/>
-</file>
-<file factoryID="org.eclipse.cdt.ui.ExternalEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="stdio.h" tooltip="C:\Program Files (x86)\GNU Tools ARM Embedded\4.7 2012q4\arm-none-eabi\include\stdio.h">
-<persistable path="C:\Program Files (x86)\GNU Tools ARM Embedded\4.7 2012q4\arm-none-eabi\include\stdio.h" project="STM32_RF22"/>
-</file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22.c" tooltip="STM32_RF22/drivers/src/rfm22.c">
 <persistable path="/STM32_RF22/drivers/src/rfm22.c"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="misc.h" tooltip="STM32_RF22/stm_lib/inc/misc.h">
-<persistable path="/STM32_RF22/stm_lib/inc/misc.h"/>
-</file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="nvic.h" tooltip="STM32_RF22/drivers/inc/nvic.h">
-<persistable path="/STM32_RF22/drivers/inc/nvic.h"/>
-</file>
-<file factoryID="org.coocox.component.ui.editors.repository.RepositoryElementFactory" id="org.coocox.builder.ui.editors.repository.RepositoryBrowser" name="Repository" tooltip="Repository">
-<persistable>&#x0A;<subPage/>
+<file factoryID="org.coocox.builder.ui.persistent.PersistentElementFactory" id="org.coocox.builder.ui.editors.ConfigEditor" name="" tooltip="">
+<persistable>
+<org.coocox.builder.ui.editors.ConfigEditor/>
 </persistable>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rf_test.c" tooltip="STM32_RF22/rf_test.c">
+<persistable path="/STM32_RF22/rf_test.c"/>
+</file>
+<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22.c" tooltip="C:\CooCox\CoIDE\workspace\STM32_RF22\rfm22.c">
+<persistable uri="file:/C:/CooCox/CoIDE/workspace/STM32_RF22/rfm22.c"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="nvic.c" tooltip="STM32_RF22/drivers/src/nvic.c">
+<persistable path="/STM32_RF22/drivers/src/nvic.c"/>
 </file>
 <file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="stm32f10x_conf.h" tooltip="STM32_RF22/cmsis_boot/stm32f10x_conf.h">
 <persistable path="/STM32_RF22/cmsis_boot/stm32f10x_conf.h"/>
 </file>
-<file factoryID="org.coocox.component.ui.editors.repository.RepositoryElementFactory" id="org.coocox.builder.ui.editors.repository.RepositoryBrowser" name="Repository" tooltip="Repository">
-<persistable>&#x0A;<subPage/>
-</persistable>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="misc.c" tooltip="STM32_RF22/stm_lib/src/misc.c">
+<persistable path="/STM32_RF22/stm_lib/src/misc.c"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="ili9320_font.h" tooltip="STM32_RF22/drivers/inc/ili9320_font.h">
-<persistable path="/STM32_RF22/drivers/inc/ili9320_font.h"/>
+<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="nvic.c" tooltip="C:\CooCox\CoIDE\workspace\STM32_RF22\drivers\nvic.c">
+<persistable uri="file:/C:/CooCox/CoIDE/workspace/STM32_RF22/drivers/nvic.c"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="ili9320.c" tooltip="STM32_RF22/drivers/src/ili9320.c">
-<persistable path="/STM32_RF22/drivers/src/ili9320.c"/>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22reg.h" tooltip="STM32_RF22/drivers/inc/rfm22reg.h">
+<persistable path="/STM32_RF22/drivers/inc/rfm22reg.h"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="ili9320.h" tooltip="STM32_RF22/drivers/inc/ili9320.h">
-<persistable path="/STM32_RF22/drivers/inc/ili9320.h"/>
+<file factoryID="org.eclipse.ui.ide.FileStoreEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22.h" tooltip="C:\CooCox\CoIDE\workspace\STM32_RF22\rfm22.h">
+<persistable uri="file:/C:/CooCox/CoIDE/workspace/STM32_RF22/rfm22.h"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="stm32f10x_gpio.c" tooltip="STM32_RF22/stm_lib/src/stm32f10x_gpio.c">
-<persistable path="/STM32_RF22/stm_lib/src/stm32f10x_gpio.c"/>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="exti.h" tooltip="STM32_RF22/drivers/inc/exti.h">
+<persistable path="/STM32_RF22/drivers/inc/exti.h"/>
 </file>
-<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="stm32f10x_gpio.c" tooltip="STM32_RF22/stm_lib/src/stm32f10x_gpio.c">
-<persistable path="/STM32_RF22/stm_lib/src/stm32f10x_gpio.c"/>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="nvic.h" tooltip="STM32_RF22/drivers/inc/nvic.h">
+<persistable path="/STM32_RF22/drivers/inc/nvic.h"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="exti.c" tooltip="STM32_RF22/drivers/src/exti.c">
+<persistable path="/STM32_RF22/drivers/src/exti.c"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="nvic.c" tooltip="STM32_RF22/drivers/inc/nvic.c">
+<persistable path="/STM32_RF22/drivers/inc/nvic.c"/>
+</file>
+<file factoryID="org.eclipse.ui.part.FileEditorInputFactory" id="org.eclipse.cdt.ui.editor.CEditor" name="rfm22reg.h" tooltip="STM32_RF22/rfm22reg.h">
+<persistable path="/STM32_RF22/rfm22reg.h"/>
 </file>
 </mruList>
 </workbench>
